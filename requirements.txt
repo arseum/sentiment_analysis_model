@@ -1,6 +1,7 @@
 # Data manipulation
 pandas>=1.5.0
 numpy>=1.23.0
+openpyxl
 
 # Visualization
 matplotlib>=3.6.0
