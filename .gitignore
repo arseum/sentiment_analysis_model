@@ -1,0 +1,7 @@
+*.xml
+
+.idea
+.idea/
+.idea/*
+
+all_data.csv
