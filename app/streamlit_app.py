@@ -2,11 +2,6 @@
 Application Streamlit - Analyse d'avis d'assurance
 Projet 2 NLP 2026 - Arsène Maitre & Gabriel Thibout
 
-4 pages :
-  1. Prédiction de sentiment + catégorie
-  2. Résumé par assureur
-  3. Explication LIME
-  4. Recherche IR (TF-IDF + cosine)
 """
 
 import streamlit as st
@@ -18,10 +13,8 @@ import joblib
 import json
 from pathlib import Path
 
-# ── Configuration ─────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Analyse d'avis d'assurance",
-    page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -30,7 +23,6 @@ BASE_DIR = Path(__file__).parent.parent
 DATA_PROCESSED = BASE_DIR / "data" / "processed"
 MODELS_DIR = BASE_DIR / "models"
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
 
 @st.cache_data
 def load_data():
@@ -42,7 +34,6 @@ def load_data():
     for path in candidates:
         if path.exists():
             df = pd.read_csv(path)
-            # Normalise les noms de colonnes
             col_map = {}
             for col in df.columns:
                 if col.lower() in ("review", "review_text", "text", "content"):
@@ -102,7 +93,7 @@ def load_zero_shot():
         from transformers import pipeline as hf_pipeline
         return hf_pipeline(
             "zero-shot-classification",
-            model="cross-encoder/nli-MiniLM2-L6-H768",  # léger
+            model="cross-encoder/nli-MiniLM2-L6-H768",
         )
     except Exception:
         return None
@@ -130,18 +121,18 @@ def build_tfidf_index(df: pd.DataFrame):
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 
-st.sidebar.title("🛡️ Avis d'assurance")
-st.sidebar.markdown("**NLP Projet 2 — 2026**")
+st.sidebar.title("Avis d'assurance")
+st.sidebar.markdown("NLP Projet 2 — 2026")
 st.sidebar.markdown("Arsène Maitre & Gabriel Thibout")
 st.sidebar.divider()
 
 page = st.sidebar.radio(
     "Navigation",
     [
-        "🔮 Prédiction",
-        "📊 Résumé par assureur",
-        "🔍 Explication LIME",
-        "🔎 Recherche IR",
+        "Prédiction",
+        "Résumé par assureur",
+        "Explication LIME",
+        "Recherche IR",
     ],
 )
 
@@ -154,8 +145,8 @@ model, model_name = load_model()
 # PAGE 1 : PRÉDICTION
 # ══════════════════════════════════════════════════════════════════════════════
 
-if page == "🔮 Prédiction":
-    st.title("🔮 Prédiction de sentiment & catégorie")
+if page == "Prédiction":
+    st.title("Prédiction de sentiment & catégorie")
     st.markdown(
         "Saisissez une review d'assurance pour obtenir le **sentiment prédit** "
         "et la **catégorie détectée** automatiquement."
@@ -181,7 +172,6 @@ if page == "🔮 Prédiction":
         if bert is not None:
             with st.spinner("Analyse BERT..."):
                 results = bert(user_input[:512])
-                # Résultats sous forme [{label, score}, ...]
                 label_map = {
                     "LABEL_0": "négatif",
                     "LABEL_1": "neutre",
@@ -211,23 +201,20 @@ if page == "🔮 Prédiction":
             st.error("Aucun modèle disponible. Veuillez d'abord exécuter le notebook 5.")
             st.stop()
 
-        color_map = {"positif": "🟢", "neutre": "🟡", "négatif": "🔴"}
-        icon = color_map.get(pred_label, "⚪")
-
         col_a, col_b, col_c = st.columns(3)
         for col, (lbl, scr) in zip(
             [col_a, col_b, col_c],
             scores.items(),
         ):
             with col:
-                delta = "✓ prédit" if lbl == pred_label else ""
+                delta = "prédit" if lbl == pred_label else ""
                 st.metric(
-                    label=f"{color_map.get(lbl, '')} {lbl.capitalize()}",
+                    label=lbl.capitalize(),
                     value=f"{scr:.1%}",
                     delta=delta,
                 )
 
-        st.success(f"{icon} **Sentiment : {pred_label.upper()}** (modèle : {used_model})")
+        st.success(f"Sentiment : **{pred_label.upper()}** — modèle : {used_model}")
 
         # ── Catégorie zero-shot ────────────────────────────────────────────────
         st.subheader("Catégorie détectée")
@@ -275,7 +262,7 @@ if page == "🔮 Prédiction":
                 fig.update_layout(height=300, showlegend=False)
                 st.plotly_chart(fig, use_container_width=True)
                 st.info(
-                    f"📂 Catégorie principale : **{label_fr.get(top_cat, top_cat)}** ({top_score:.1%})"
+                    f"Catégorie principale : **{label_fr.get(top_cat, top_cat)}** ({top_score:.1%})"
                 )
         else:
             st.warning(
@@ -287,8 +274,8 @@ if page == "🔮 Prédiction":
 # PAGE 2 : RÉSUMÉ PAR ASSUREUR
 # ══════════════════════════════════════════════════════════════════════════════
 
-elif page == "📊 Résumé par assureur":
-    st.title("📊 Résumé par assureur")
+elif page == "Résumé par assureur":
+    st.title("Résumé par assureur")
 
     if df is None:
         st.error("Dataset non chargé. Exécutez les notebooks 1 et 2 d'abord.")
@@ -308,9 +295,9 @@ elif page == "📊 Résumé par assureur":
     col1, col2, col3, col4 = st.columns(4)
     if "stars" in sub.columns:
         with col1:
-            st.metric("Note moyenne", f"{sub['stars'].mean():.2f} ⭐")
+            st.metric("Note moyenne", f"{sub['stars'].mean():.2f} / 5")
         with col2:
-            st.metric("Médianne", f"{sub['stars'].median():.1f} ⭐")
+            st.metric("Médiane", f"{sub['stars'].median():.1f} / 5")
     if "sentiment" in sub.columns:
         sentiment_counts = sub["sentiment"].value_counts()
         with col3:
@@ -358,7 +345,7 @@ elif page == "📊 Résumé par assureur":
     if st.button("Générer le résumé", type="primary"):
         text_col = "review_clean" if "review_clean" in sub.columns else "review"
         reviews_sample = sub[text_col].dropna().head(n_reviews_summary).tolist()
-        combined_text = " ".join(reviews_sample)[:3000]  # Limit to 3000 chars
+        combined_text = " ".join(reviews_sample)[:3000]
 
         try:
             from transformers import pipeline as hf_pipeline
@@ -372,19 +359,18 @@ elif page == "📊 Résumé par assureur":
                     truncation=True,
                 )
                 summary = summarizer(combined_text)[0]["summary_text"]
-                st.success("**Résumé automatique :**")
+                st.markdown("**Résumé automatique :**")
                 st.write(summary)
         except Exception as e:
-            # Fallback: extractive summary (top sentences)
             sentences = combined_text.split(". ")
             extractive = ". ".join(sentences[:5]) + "."
-            st.info("**Résumé extractif (fallback) :**")
+            st.markdown("**Résumé extractif (fallback) :**")
             st.write(extractive)
 
     # ── Exemples de reviews ────────────────────────────────────────────────────
     st.subheader("Exemples de reviews")
     text_col = "review" if "review" in sub.columns else "review_clean"
-    tab_pos, tab_neu, tab_neg = st.tabs(["✅ Positives", "😐 Neutres", "❌ Négatives"])
+    tab_pos, tab_neu, tab_neg = st.tabs(["Positives", "Neutres", "Négatives"])
     for tab, sent in zip([tab_pos, tab_neu, tab_neg], ["positif", "neutre", "négatif"]):
         with tab:
             examples = sub[sub["sentiment"] == sent][text_col].dropna().head(3)
@@ -395,11 +381,10 @@ elif page == "📊 Résumé par assureur":
 # PAGE 3 : EXPLICATION LIME
 # ══════════════════════════════════════════════════════════════════════════════
 
-elif page == "🔍 Explication LIME":
-    st.title("🔍 Explication des prédictions (LIME)")
+elif page == "Explication LIME":
+    st.title("Explication des prédictions (LIME)")
     st.markdown(
-        "LIME explique pourquoi le modèle a prédit un certain sentiment en "
-        "identifiant les mots les plus influents."
+        "LIME identifie les mots les plus influents dans la prédiction du sentiment."
     )
 
     if model is None:
@@ -420,17 +405,14 @@ elif page == "🔍 Explication LIME":
 
             class_names = ["négatif", "neutre", "positif"]
 
-            # Adapter predict_proba selon le modèle
             if hasattr(model, "predict_proba"):
                 predict_fn = lambda texts: model.predict_proba(
                     [preprocess_text(t) for t in texts]
                 )
             else:
-                # LinearSVC: utiliser decision_function + softmax
                 def predict_fn(texts):
                     cleaned = [preprocess_text(t) for t in texts]
                     decision = model.decision_function(cleaned)
-                    # Softmax approximation
                     exp = np.exp(decision - decision.max(axis=1, keepdims=True))
                     return exp / exp.sum(axis=1, keepdims=True)
 
@@ -447,23 +429,20 @@ elif page == "🔍 Explication LIME":
             st.subheader("Scores de confiance")
             proba = predict_fn([user_input])[0]
             col1, col2, col3 = st.columns(3)
-            emojis = ["🔴", "🟡", "🟢"]
-            for col, (cls, prob, em) in zip(
-                [col1, col2, col3], zip(class_names, proba, emojis)
+            for col, (cls, prob) in zip(
+                [col1, col2, col3], zip(class_names, proba)
             ):
                 with col:
-                    st.metric(f"{em} {cls.capitalize()}", f"{prob:.1%}")
+                    st.metric(cls.capitalize(), f"{prob:.1%}")
 
             pred_idx = np.argmax(proba)
             st.success(
-                f"**Prédiction : {class_names[pred_idx].upper()}** "
+                f"Prédiction : **{class_names[pred_idx].upper()}** "
                 f"({proba[pred_idx]:.1%} de confiance)"
             )
 
             # ── Explication LIME ────────────────────────────────────────────
             st.subheader("Mots les plus influents")
-
-            # HTML de LIME
             lime_html = exp.as_html()
             st.components.v1.html(lime_html, height=400, scrolling=True)
 
@@ -471,8 +450,8 @@ elif page == "🔍 Explication LIME":
             st.subheader("Contributions par mot")
             lime_list = exp.as_list()
             lime_df = pd.DataFrame(lime_list, columns=["Mot", "Contribution"])
-            lime_df["Impact"] = lime_df["Contribution"].apply(
-                lambda x: "✅ Pro-positif" if x > 0 else "❌ Pro-négatif"
+            lime_df["Direction"] = lime_df["Contribution"].apply(
+                lambda x: "pro-positif" if x > 0 else "pro-négatif"
             )
             lime_df["Contribution"] = lime_df["Contribution"].round(4)
             lime_df = lime_df.sort_values("Contribution", ascending=False)
@@ -493,10 +472,10 @@ elif page == "🔍 Explication LIME":
 # PAGE 4 : RECHERCHE IR
 # ══════════════════════════════════════════════════════════════════════════════
 
-elif page == "🔎 Recherche IR":
-    st.title("🔎 Recherche de reviews similaires (TF-IDF)")
+elif page == "Recherche IR":
+    st.title("Recherche de reviews similaires (TF-IDF)")
     st.markdown(
-        "Recherche basée sur la similarité cosine TF-IDF — "
+        "Recherche par similarité cosine TF-IDF — "
         "réutilisation du pipeline du **Projet 1**."
     )
 
@@ -505,7 +484,7 @@ elif page == "🔎 Recherche IR":
         st.stop()
 
     # ── Filtres ────────────────────────────────────────────────────────────────
-    with st.expander("🔧 Filtres avancés", expanded=False):
+    with st.expander("Filtres avancés", expanded=False):
         col1, col2, col3, col4 = st.columns(4)
 
         with col1:
@@ -553,7 +532,7 @@ elif page == "🔎 Recherche IR":
 
     # ── Requête ────────────────────────────────────────────────────────────────
     query = st.text_input(
-        "Votre requête de recherche",
+        "Requête de recherche",
         placeholder="Ex: denied claim unfair treatment",
     )
 
@@ -587,17 +566,17 @@ elif page == "🔎 Recherche IR":
                     st.warning("Pas de résultats suffisamment similaires.")
                     break
 
+                stars_str = f"{int(row.get('stars', '?'))} étoiles | " if "stars" in row else ""
+                insurer_str = f"{row.get('insurer', '')} | " if "insurer" in row else ""
+                sentiment_str = row.get("sentiment", "").capitalize() if "sentiment" in row else ""
+
                 with st.expander(
-                    f"#{rank} — Score: {score:.3f} | "
-                    + (f"⭐ {int(row.get('stars', '?'))} | " if "stars" in row else "")
-                    + (f"{row.get('insurer', '')} | " if "insurer" in row else "")
-                    + (row.get("sentiment", "").capitalize() if "sentiment" in row else ""),
+                    f"#{rank} — Score : {score:.3f} | {stars_str}{insurer_str}{sentiment_str}",
                     expanded=(rank == 1),
                 ):
                     review_text = row.get(display_text_col, "")
                     st.write(review_text)
 
-                    # Highlight query terms
                     query_terms = set(preprocess_text(query).split())
                     highlighted = review_text
                     for term in query_terms:
@@ -612,39 +591,27 @@ elif page == "🔎 Recherche IR":
                         st.markdown("**Termes trouvés :**")
                         st.markdown(highlighted[:500])
 
-                    # Métadonnées
                     meta_cols = st.columns(4)
                     with meta_cols[0]:
                         st.metric("Similarité", f"{score:.3f}")
                     if "stars" in row:
                         with meta_cols[1]:
-                            st.metric("Étoiles", f"{'⭐' * int(row['stars'])}")
+                            st.metric("Étoiles", f"{int(row['stars'])} / 5")
                     if "insurer" in row:
                         with meta_cols[2]:
                             st.metric("Assureur", str(row["insurer"]))
                     if "sentiment" in row:
                         with meta_cols[3]:
-                            em = {"positif": "🟢", "neutre": "🟡", "négatif": "🔴"}
-                            st.metric(
-                                "Sentiment",
-                                f"{em.get(row['sentiment'], '')} {str(row['sentiment']).capitalize()}",
-                            )
+                            st.metric("Sentiment", str(row["sentiment"]).capitalize())
 
 # ── Footer ────────────────────────────────────────────────────────────────────
 st.sidebar.divider()
 st.sidebar.markdown(
     """
-**Guide rapide :**
-1. 🔮 Analyser une review
-2. 📊 Explorer un assureur
-3. 🔍 Comprendre les prédictions
-4. 🔎 Rechercher des reviews
-
-**Avant utilisation :**
-```bash
-# Exécuter les notebooks 1-5
-# puis :
-streamlit run app/streamlit_app.py
-```
+**Utilisation :**
+1. Prédiction — analyser une review
+2. Résumé — explorer un assureur
+3. LIME — comprendre les prédictions
+4. Recherche IR — trouver des reviews similaires
 """
 )
