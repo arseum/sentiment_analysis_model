@@ -3,5 +3,6 @@
 .idea
 .idea/
 .idea/*
+.idea/*.xml
 
 all_data.csv
