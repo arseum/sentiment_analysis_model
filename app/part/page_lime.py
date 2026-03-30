@@ -39,8 +39,8 @@ def render(model):
         "Review à expliquer",
         height=150,
         value=(
-            "The claim process was a nightmare. They denied my request without "
-            "explanation and the customer service was rude."
+            "Le traitement de mon sinistre a été un cauchemar. Ils ont refusé "
+            "ma demande sans explication et le service client était désagréable."
         ),
     )
     num_features = st.slider("Nombre de mots à expliquer", 5, 20, 10)

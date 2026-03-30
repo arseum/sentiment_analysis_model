@@ -8,12 +8,11 @@ import pandas as pd
 
 
 def preprocess_text(text: str) -> str:
-    """Nettoyage minimal pour la prédiction."""
+    """Nettoyage minimal pour la prédiction (français)."""
     text = text.lower()
     text = re.sub(r"http\S+", "", text)
-    text = re.sub(r"[^a-z0-9\s']", " ", text)
+    text = re.sub(r"[^a-zàâäéèêëîïôöùûüçœæ0-9\s']", " ", text)
     text = re.sub(r"\s+", " ", text).strip()
-    # TODO upgrade
     return text
 
 

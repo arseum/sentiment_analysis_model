@@ -2,15 +2,19 @@
 Chargement donné + modèles en cache
 """
 
+import sys
 from pathlib import Path
 
 import joblib
 import pandas as pd
 import streamlit as st
 
-BASE_DIR = Path(__file__).parent.parent.parent
-DATA_PROCESSED = BASE_DIR / "data" / "processed"
-MODELS_DIR = BASE_DIR / "models"
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from config import (
+    DATA_CLEAN, DATA_PROCESSED,
+    TFIDF_LR_PATH, TFIDF_SVM_PATH, BERT_DIR,
+    TEXT_COL, CLEAN_COL, RATING_COL, INSURER_COL, SENTIMENT_COL,
+)
 
 
 @st.cache_data
@@ -18,22 +22,18 @@ def load_data() -> pd.DataFrame | None:
     """Charge le dataset nettoyé."""
     candidates = [
         DATA_PROCESSED / "reviews_topics.csv",
-        DATA_PROCESSED / "reviews_clean.csv",
+        DATA_CLEAN,
     ]
     for path in candidates:
         if path.exists():
             df = pd.read_csv(path)
-            col_map = {}
-            for col in df.columns:
-                if col.lower() in ("review", "review_text", "text", "content"):
-                    col_map[col] = "review"
-                elif col.lower() in ("review_clean", "clean_text", "cleaned"):
-                    col_map[col] = "review_clean"
-                elif col.lower() in ("stars", "rating", "note", "score"):
-                    col_map[col] = "stars"
-                elif col.lower() in ("insurer", "company", "company_name", "assureur"):
-                    col_map[col] = "insurer"
-            df = df.rename(columns=col_map)
+            df = df.rename(columns={
+                TEXT_COL: "review",
+                CLEAN_COL: "review_clean",
+                RATING_COL: "stars",
+                INSURER_COL: "insurer",
+                SENTIMENT_COL: "sentiment",
+            })
             if "review_clean" not in df.columns and "review" in df.columns:
                 df["review_clean"] = df["review"]
             if "sentiment" not in df.columns and "stars" in df.columns:
@@ -48,8 +48,8 @@ def load_data() -> pd.DataFrame | None:
 def load_model():
     """Charge le meilleur modèle classique disponible."""
     candidates = [
-        (MODELS_DIR / "tfidf_svm.pkl", "TF-IDF + SVM"),
-        (MODELS_DIR / "tfidf_lr.pkl", "TF-IDF + Logistic Regression"),
+        (TFIDF_SVM_PATH, "TF-IDF + SVM"),
+        (TFIDF_LR_PATH, "TF-IDF + Logistic Regression"),
     ]
     for path, name in candidates:
         if path.exists():
@@ -60,16 +60,15 @@ def load_model():
 @st.cache_resource
 def load_bert():
     """Charge le modèle BERT fine-tuné si disponible."""
-    bert_dir = MODELS_DIR / "bert_sentiment"
-    if not bert_dir.exists():
+    if not BERT_DIR.exists():
         return None
     try:
         from transformers import pipeline as hf_pipeline
         return hf_pipeline(
             "text-classification",
-            model=str(bert_dir),
-            tokenizer=str(bert_dir),
-            return_all_scores=True,
+            model=str(BERT_DIR),
+            tokenizer=str(BERT_DIR),
+            top_k=None,
         )
     except Exception:
         return None
@@ -82,7 +81,7 @@ def load_zero_shot():
         from transformers import pipeline as hf_pipeline
         return hf_pipeline(
             "zero-shot-classification",
-            model="cross-encoder/nli-MiniLM2-L6-H768",
+            model="facebook/bart-large-mnli",
         )
     except Exception:
         return None

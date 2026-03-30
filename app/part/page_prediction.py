@@ -8,23 +8,10 @@ import streamlit as st
 from utils.loaders import load_bert, load_zero_shot
 from utils.text_utils import preprocess_text
 
-CATEGORY_LABELS = [
-    "pricing and cost",
-    "coverage and benefits",
-    "enrollment process",
-    "customer service",
-    "claims processing",
-    "policy cancellation",
-]
-
-LABEL_FR = {
-    "pricing and cost": "Tarification",
-    "coverage and benefits": "Couverture",
-    "enrollment process": "Souscription",
-    "customer service": "Service client",
-    "claims processing": "Remboursements",
-    "policy cancellation": "Résiliation",
-}
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from config import ZS_CATEGORY_LABELS
 
 
 def _predict_sentiment(user_input: str, model, model_name: str):
@@ -33,17 +20,19 @@ def _predict_sentiment(user_input: str, model, model_name: str):
     if bert is not None:
         with st.spinner("Analyse BERT..."):
             results = bert(user_input[:512])
+            # top_k=None renvoie une liste plate [{"label":…, "score":…}, …]
+            items = results[0] if isinstance(results[0], list) else results
             label_map = {
-                "LABEL_0": "négatif",
-                "LABEL_1": "neutre",
-                "LABEL_2": "positif",
+                "label_0": "négatif",
+                "label_1": "neutre",
+                "label_2": "positif",
                 "negative": "négatif",
                 "neutral": "neutre",
                 "positive": "positif",
             }
             scores = {
                 label_map.get(r["label"].lower(), r["label"]): r["score"]
-                for r in results[0]
+                for r in items
             }
             pred_label = max(scores, key=scores.get)
             return pred_label, scores, "BERT fine-tuné"
@@ -72,6 +61,8 @@ def _show_sentiment(user_input: str, model, model_name: str):
         st.error("Aucun modèle disponible. Veuillez d'abord exécuter le notebook 5.")
         st.stop()
 
+    st.info(f"Modèle utilisé : **{used_model}**")
+
     col_a, col_b, col_c = st.columns(3)
     for col, (lbl, scr) in zip([col_a, col_b, col_c], scores.items()):
         with col:
@@ -80,7 +71,7 @@ def _show_sentiment(user_input: str, model, model_name: str):
                 value=f"{scr:.1%}",
                 delta="prédit" if lbl == pred_label else "",
             )
-    st.success(f"Sentiment : **{pred_label.upper()}** — modèle : {used_model}")
+    st.success(f"Sentiment : **{pred_label.upper()}**")
 
 
 def _show_category(user_input: str):
@@ -94,15 +85,17 @@ def _show_category(user_input: str):
 
     import plotly.express as px
 
+    st.info("Modèle utilisé : **Zero-shot NLI (cross-encoder/nli-MiniLM2-L6-H768)**")
+
     with st.spinner("Classification zero-shot..."):
-        cat_result = zs(user_input[:512], candidate_labels=CATEGORY_LABELS)
+        cat_result = zs(user_input[:512], candidate_labels=ZS_CATEGORY_LABELS)
 
     top_cat = cat_result["labels"][0]
     top_score = cat_result["scores"][0]
 
     cat_df = pd.DataFrame(
         {
-            "Catégorie": [LABEL_FR.get(l, l) for l in cat_result["labels"]],
+            "Catégorie": [l.capitalize() for l in cat_result["labels"]],
             "Score": cat_result["scores"],
         }
     )
@@ -116,20 +109,20 @@ def _show_category(user_input: str):
     )
     fig.update_layout(height=300, showlegend=False)
     st.plotly_chart(fig, use_container_width=True)
-    st.info(f"Catégorie principale : **{LABEL_FR.get(top_cat, top_cat)}** ({top_score:.1%})")
+    st.info(f"Catégorie principale : **{top_cat.capitalize()}** ({top_score:.1%})")
 
 
 def render(model, model_name: str):
     st.title("Prédiction de sentiment & catégorie")
     st.markdown(
-        "Saisissez une review d'assurance pour obtenir le **sentiment prédit** "
+        "Saisissez un avis d'assurance pour obtenir le **sentiment prédit** "
         "et la **catégorie détectée** automatiquement."
     )
 
     user_input = st.text_area(
-        "Review à analyser",
+        "Avis à analyser",
         height=150,
-        placeholder="Ex: The insurance company has been very helpful with my claim...",
+        placeholder="Ex: Mon sinistre auto a été traité rapidement, très satisfait du service.",
     )
 
     col1, _ = st.columns([1, 3])

@@ -131,7 +131,7 @@ def render(df: pd.DataFrame):
 
     query = st.text_input(
         "Requête de recherche",
-        placeholder="Ex: denied claim unfair treatment",
+        placeholder="Ex: sinistre auto remboursement refusé",
     )
 
     if st.button("Rechercher", type="primary") and query.strip():
