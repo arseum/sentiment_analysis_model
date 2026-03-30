@@ -47,7 +47,8 @@ for nb in notebooks/1_exploration.ipynb \
     echo ">>> Exécution de $nb ..."
     jupyter nbconvert --to notebook --execute --inplace \
         --ExecutePreprocessor.timeout=600 \
-        --ExecutePreprocessor.kernel_name=python3 "$nb"
+        --ExecutePreprocessor.kernel_name=python3 \
+        --ExecutePreprocessor.cwd="$(pwd)" "$nb"
     echo "<<< $nb terminé."
 done
 
