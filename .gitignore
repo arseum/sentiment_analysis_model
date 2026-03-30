@@ -10,3 +10,22 @@ venv/*
 .idea/*.xml
 
 all_data.csv
+.DS_Store
+__pycache__/
+
+# --- Modèles : tout ignorer sauf BERT ---
+models/lda/
+models/word2vec/
+models/sbert/
+models/tensorboard_logs/
+models/supervised/nn_embedding/
+models/supervised/nn_word2vec/
+models/supervised/tfidf_lr.pkl
+models/supervised/tfidf_svm.pkl
+# Ignorer les checkpoints intermédiaires BERT (trop lourds)
+models/supervised/bert_sentiment/checkpoint-*/
+models/supervised/bert_sentiment/runs/
+
+# --- Données : ignorer les fichiers dérivés sauf reviews_clean.csv ---
+data/processed/data.csv
+data/processed/reviews_topics.csv

@@ -24,6 +24,7 @@ langdetect>=1.0.9
 
 # Deep Learning
 torch>=2.0.0
+torchvision>=0.15.0
 
 # TensorFlow - platform specific
 # Sur Mac (Apple Silicon) : tensorflow-macos + tensorflow-metal sont installés automatiquement
@@ -57,3 +58,5 @@ requests>=2.31.0
 # Jupyter
 jupyter>=1.0.0
 jupyterlab>=4.0.0
+
+nltk

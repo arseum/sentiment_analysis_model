@@ -12,6 +12,9 @@ classification de sentiment (TF-IDF + LR/SVM, réseau de neurones), et recherche
 > Le script vérifie Python 3.12, crée le venv, installe les dépendances et télécharge le modèle spaCy.
 > TensorFlow s'installe automatiquement selon la plateforme (Mac Apple Silicon ou Linux/Windows).
 
+
+> Il faut configurer l'environnement d'exécution python qui se trouve dans `./venv/` selon l'IDEA utilisé.
+
 ---
 
 ## Utilisation

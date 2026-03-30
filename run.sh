@@ -31,7 +31,7 @@ pip install -r requirements.txt
 
 # Télécharger le modèle spaCy
 echo "Téléchargement du modèle spaCy..."
-python -m spacy download en_core_web_sm
+python -m spacy download fr_core_news_sm
 
 echo ""
 echo "Setup terminé. Pour activer l'environnement : source venv/bin/activate"
