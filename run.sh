@@ -34,4 +34,22 @@ echo "Téléchargement du modèle spaCy..."
 python -m spacy download fr_core_news_sm
 
 echo ""
-echo "Setup terminé. Pour activer l'environnement : source venv/bin/activate"
+echo "Setup terminé."
+
+# Exécuter les notebooks dans l'ordre
+echo "Lancement des notebooks..."
+for nb in notebooks/1_exploration.ipynb \
+           notebooks/2_cleaning_preprocessing.ipynb \
+           notebooks/3_topic_modeling.ipynb \
+           notebooks/4_embeddings.ipynb \
+           notebooks/5_supervised_learning.ipynb; do
+    echo ""
+    echo ">>> Exécution de $nb ..."
+    jupyter nbconvert --to notebook --execute --inplace \
+        --ExecutePreprocessor.timeout=600 \
+        --ExecutePreprocessor.kernel_name=python3 "$nb"
+    echo "<<< $nb terminé."
+done
+
+echo ""
+echo "Tous les notebooks ont été exécutés."
