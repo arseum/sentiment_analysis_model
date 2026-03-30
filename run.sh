@@ -53,10 +53,12 @@ nb.get('metadata', {}).pop('jetTransient', None)
 with open('$nb', 'w') as f: json.dump(nb, f, indent=1)
 "
     PYTHONPATH="$(pwd)" jupyter nbconvert --to notebook --execute --inplace \
-        --ExecutePreprocessor.timeout=600 \
+        --ExecutePreprocessor.timeout=3000 \
         --ExecutePreprocessor.kernel_name=python3 "$nb"
     echo "<<< $nb terminé."
 done
 
 echo ""
 echo "Tous les notebooks ont été exécutés."
+echo "lancement de l'app..."
+streamlit run app/streamlit_app.py
