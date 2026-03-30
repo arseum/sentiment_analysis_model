@@ -3,17 +3,18 @@
 Analyse NLP d'avis clients d'assureurs : topic modeling (LDA), word embeddings (Word2Vec, sentence-transformers),
 classification de sentiment (TF-IDF + LR/SVM, réseau de neurones), et recherche sémantique (FAISS).
 
-**First step :**
+## Installation
 
 ```bash
-pip install -r requirements.txt
+./run.sh
 ```
 
-```bash
-python -m spacy download en_core_web_sm
-```
+> Le script vérifie Python 3.12, crée le venv, installe les dépendances et télécharge le modèle spaCy.
+> TensorFlow s'installe automatiquement selon la plateforme (Mac Apple Silicon ou Linux/Windows).
 
-## How to use
+---
+
+## Utilisation
 
 **Lancer l'application :**
 

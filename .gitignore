@@ -1,5 +1,9 @@
 *.xml
 
+venv
+venv/
+venv/*
+
 .idea
 .idea/
 .idea/*

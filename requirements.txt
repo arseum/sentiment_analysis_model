@@ -24,8 +24,13 @@ langdetect>=1.0.9
 
 # Deep Learning
 torch>=2.0.0
-tensorflow>=2.12.0
-keras>=2.12.0
+
+# TensorFlow - platform specific
+# Sur Mac (Apple Silicon) : tensorflow-macos + tensorflow-metal sont installés automatiquement
+# Sur Linux/Windows      : tensorflow standard est installé automatiquement
+tensorflow>=2.13.0; sys_platform != 'darwin'
+tensorflow-macos; sys_platform == 'darwin'
+tensorflow-metal; sys_platform == 'darwin'
 
 # Transformers & HuggingFace
 transformers>=4.30.0
@@ -48,3 +53,7 @@ faiss-cpu>=1.7.4
 tqdm>=4.65.0
 joblib>=1.2.0
 requests>=2.31.0
+
+# Jupyter
+jupyter>=1.0.0
+jupyterlab>=4.0.0
