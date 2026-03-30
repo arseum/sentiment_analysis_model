@@ -45,10 +45,16 @@ for nb in notebooks/1_exploration.ipynb \
            notebooks/5_supervised_learning.ipynb; do
     echo ""
     echo ">>> Exécution de $nb ..."
-    jupyter nbconvert --to notebook --execute --inplace \
+    # Nettoyer la métadonnée JetBrains invalide
+    python -c "
+import json
+with open('$nb') as f: nb = json.load(f)
+nb.get('metadata', {}).pop('jetTransient', None)
+with open('$nb', 'w') as f: json.dump(nb, f, indent=1)
+"
+    PYTHONPATH="$(pwd)" jupyter nbconvert --to notebook --execute --inplace \
         --ExecutePreprocessor.timeout=600 \
-        --ExecutePreprocessor.kernel_name=python3 \
-        --ExecutePreprocessor.cwd="$(pwd)" "$nb"
+        --ExecutePreprocessor.kernel_name=python3 "$nb"
     echo "<<< $nb terminé."
 done
 
