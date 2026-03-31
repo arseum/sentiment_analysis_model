@@ -9,7 +9,7 @@ from pathlib import Path
 import streamlit as st
 
 from utils.loaders import load_data, load_model
-from part import page_prediction, page_insurer, page_lime, page_ir
+from part import page_prediction, page_insurer, page_lime, page_ir, page_rag, page_qa
 
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -31,6 +31,8 @@ part = st.sidebar.radio(
         "Résumé par assureur",
         "Explication LIME",
         "Recherche IR",
+        "RAG",
+        "Question Answering",
     ],
 )
 
@@ -48,3 +50,9 @@ elif part == "Explication LIME":
 
 elif part == "Recherche IR":
     page_ir.render(df)
+
+elif part == "RAG":
+    page_rag.render(df)
+
+elif part == "Question Answering":
+    page_qa.render(df)
